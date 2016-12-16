@@ -155,7 +155,7 @@ module.exports = function(app, io) {
 			if (data) {
 				var msg = data.msg;
 				var user = data.user;
-				var _label = data.label;
+				var _label = data.pair;
 				if (_label) {
 					if (_label == '#general') {
 						var _data = {username: socket.nickname, chat: data.msg};
@@ -247,19 +247,14 @@ module.exports = function(app, io) {
 				 // var user1 = fetchId(socket.nickname),
 					//  user2 = fetchId(data);
 
-				var _data = {username: socket.nickname, pair: data.label, page: data.page};
+				var _data = {username: socket.nickname, label: label, page: data.page};
 
 				api.pullPrivateChat(_data, url, function(error, response, body) {
 						if(error) {
 							console.log(error)
 						} else {
 							var body = JSON.parse(body);
-							var data = [];
-							//console.log(JSON.stringify(body[4]) +'  server267')
-							for(var i = 0; i < body.length; i++) {
-								data.push({username: body[i].user1, chat: body[i].chat, date_created: body[i].date_created});
-							}
-							socket.emit('private chat backup', data);
+							socket.emit('private chat backup', body);
 							callback(true);
 							}				
 						});		 

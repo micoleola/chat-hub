@@ -80,13 +80,11 @@ module.exports = {
     },
 
   privateRowCount: function(con, data, callback) {
-    var sql = 'SELECT COUNT(*) count FROM private_chat WHERE (user1 = '+
-          con.escape(data.username) +' AND user2 = '+ con.escape(data.pair) +') OR (user1='+
-          con.escape(data.pair) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id';
+    var sql = 'SELECT COUNT(*) count FROM private_chat WHERE (user1 = '+ con.escape(data.username) +' AND user2 = '+ con.escape(data.label) +') OR (user1='+
+          con.escape(data.label) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id';
     con.query(sql,
       function(err, rows) {
         callback(err, rows);
-        console.log(rows + '   here in query')
       });
     },
 
@@ -99,11 +97,11 @@ module.exports = {
     },
 
   pullPrivateChat: function(con, data, callback) {
-    var sql = 'SELECT user1, chat, date_created FROM private_chat WHERE (user1 = '+
-          con.escape(data.username) +' AND user2 = '+ con.escape(data.pair) +') OR (user1='+
-          con.escape(data.pair) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id DESC LIMIT '+ data.limit;
+    var sql = 'SELECT (user1) username, chat, date_created FROM private_chat WHERE (user1 = '+
+          con.escape(data.username) +' AND user2 = '+ con.escape(data.label) +') OR (user1='+
+          con.escape(data.label) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id DESC LIMIT '+ data.limit;
     con.query(sql,
-      function(err, rows) {
+      function(err, rows) {        
         callback(err, rows);
       });
     },

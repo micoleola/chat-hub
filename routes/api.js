@@ -229,11 +229,8 @@ module.exports = function(app) {
 					      console.error(err);
 					      util.broadcastError(res, err.message);
 					      return;
-					    } else {
-					    	
+					    } else {					    	
 		    				var responsePayload = {rows: rows};
-		    				console.log(page +'   '+ numOfPages)
-
 
 							if (page < numOfPages) {
 							    responsePayload.pagination = {
@@ -246,8 +243,6 @@ module.exports = function(app) {
 							} else responsePayload.pagination = {
 							      err: 'queried page is >= to maximum page number ' + numOfPages
 							    }
-
-							    console.log(JSON.stringify(responsePayload.pagination) + '   hghjgg')
 							    // console.log(responsePayload);
 							    res.json(responsePayload);
 							    }
@@ -301,27 +296,26 @@ module.exports = function(app) {
 		    util.broadcastError(res, err.message);
 		    return;
 	    } else {
-	    	query.privateRowCount(connection, {username: data.username, pair: data.pair}, function(
-			    err, rows) {
-			    if (err) {
-			      console.error(err);
-			      util.broadcastError(res, err.message);
-			      return;
-			    } else {
+	    	query.privateRowCount(connection, {username: data.username, label: data.label}, function(err, rows) {
+				    if (err) {
+				      console.error(err);
+				      util.broadcastError(res, err.message);
+				      return;
+				    } else {
 					
 			    	// console.log(rows)
 			    	if (rows[0].count > 0) {
     				numOfPages = Math.ceil(rows[0].count / numPerPage);
     					}
 
-    				var _data = {username: data.username, pair: data.label, limit: limit}
+    				var _data = {username: data.username, label: data.label, limit: limit}
 			    	query.pullPrivateChat(connection, _data, function(
 					    err, rows) {
 					    if (err) {
-					      console.error(err);
-					      util.broadcastError(res, err.message);
-					      return;
-					    } else {
+						      console.error(err);
+						      util.broadcastError(res, err.message);
+						      return;
+						    } else {
 					    	
 		    				var responsePayload = {rows: rows};
 

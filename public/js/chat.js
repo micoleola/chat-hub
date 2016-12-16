@@ -23,6 +23,8 @@ $(function($) {
       var general_count = '';
       var last_msg_display = '';
       var users_avatar = {};
+      var displayedChatInfo = {};
+      var privateChatInfo = {};
 
 /****************************************users avatar***********************************/
     // user choose avatar_modal box
@@ -90,7 +92,7 @@ $(function($) {
         });
         
         socket.on('login', function() {
-          $('#regWrap').hide();
+          $('#headerWrap').hide();
           $contentWrap.show();
           updateAvatar(username);
           $messageBox.focus();
@@ -131,7 +133,7 @@ $(function($) {
             socket.emit('user logged in', username, function(data) {
               if(data) {
                 $info.html('');
-                $('#userWrap').hide();
+                $('#headerWrap').hide();
                 $contentWrap.show();               
                 $messageBox.focus(); 
                 updateAvatar(username);
@@ -232,11 +234,9 @@ $(function($) {
 
         //update offline msg notification for private chats
         socket.emit('get unread chat', {user: username}, function(data) {
-            console.log(JSON.stringify(data))
             for(i = 0; i < userList.length; i++) {   
               for(j = 0; j < data.length; j++) {   
                 if(data[j]["count"] > 0 && userList[i] == data[j]["user1"]) {
-                  console.log('got here now')
                   var count = data[j]["count"];
                   $('span#'+data[j]["user1"]+'').css({'font-weight':'bold', 'color': 'blue'});
                   count++
@@ -273,7 +273,6 @@ $(function($) {
                $('span#'+chatLabel+'').css({'font-weight':'normal', 'color': 'black'})
                $( "span#notify_"+ _thistext).html('');
             }  
-            alert(chatLabel)
             pullMessage({label: chatLabel, page: 0});
             }); 
           });
@@ -343,7 +342,7 @@ $(function($) {
                   var time = formatTime(rows[i]['date_created']);
                   if (user == username) {
                       if (user == prev_user) {
-                           html += '<li class="mar-btm left-pull-margin" id="left-display">'+
+                           html += '<li class="mar-btm left-pull-margin">'+
                                  '<div class="media-body pad-hor"><div class="speech_a">'+
                                 '<div style="float:left"><p id="'+ username +'" class="p-display">'+ msg +'</p></div>'+
                                 '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ time +'</p>'+
@@ -351,7 +350,7 @@ $(function($) {
                                '</li>';
                       } else {
                            var av_id = users_avatar[user];
-                            html += '<li class="mar-btm" id="left-display"><div class="media-left">'+
+                            html += '<li class="mar-btm"><div class="media-left">'+
                                 '<img src="/images/'+av_id+'.png" '+
                                 'class="img-circle img-sm" alt="Profile Picture"></div>'+
                                  '<div class="media-body pad-hor"><div class="speech">'+
@@ -363,7 +362,7 @@ $(function($) {
                           }
                   } else {
                      if (user == prev_user) {
-                           html += '<li class="mar-btm right-pull-margin" id="right-display">'+
+                           html += '<li class="mar-btm right-pull-margin">'+
                              '<div class="media-body pad-hor speech-right"><div class="speech_b">'+
                             '<div style="float:left"><p id="'+ user +'" class="p-display">'+ msg +'</p></div>'+
                             '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ time +'</p>'+
@@ -371,7 +370,7 @@ $(function($) {
                            '</li>';
                     } else {
                           var av_id = users_avatar[user];
-                           html += '<li class="mar-btm" id="right-display"><div class="media-right">'+
+                           html += '<li class="mar-btm"><div class="media-right">'+
                             '<img src="/images/'+av_id+'.png" '+
                             'class="img-circle img-sm" alt="Profile Picture"></div>'+
                              '<div class="media-body pad-hor speech-right"><div class="speech">'+
@@ -409,13 +408,14 @@ $(function($) {
 
             if (page < numOfPages) {
               if($('#msgWrap').prop("scrollTop") == 0) {
+                refreshLabel();
                 pullMessage({label: chatLabel, page: displayedChatInfo.next})
               }
             }
           }
       })         
 
-      socket.on('private chat backup', function(data) {
+      socket.on('private chat backup', function(data) {         
         updateChatBox(data);
         });
 
@@ -425,14 +425,13 @@ $(function($) {
         var message = $messageBox.val();
         socket.emit('user done typing', username);
         if (/([^\s])/.test(message)) {
-          socket.emit('send message', { msg: message, label: chatLabel, user: username}, function(data) {
+          socket.emit('send message', { msg: message, pair: chatLabel, user: username}, function(data) {
 
         var now = getTime();
         if(data) {
           var last_msg_display = $('p.p-display').last().attr('id');
-          console.log(last_msg_display)
           if (last_msg_display == username) {
-              var html = '<li class="mar-btm left-pull-margin" id="left-display">'+
+              var html = '<li class="mar-btm left-pull-margin">'+
                    '<div class="media-body pad-hor"><div class="speech_a">'+
                   '<div style="float:left"><p id="'+ username +'" class="p-display">'+ data +'</p></div>'+
                   '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
@@ -440,7 +439,7 @@ $(function($) {
                  '</li>';
           } else {
               var av_id = users_avatar[username];
-              var html = '<li class="mar-btm" id="left-display"><div class="media-left">'+
+              var html = '<li class="mar-btm"><div class="media-left">'+
                   '<img src="/images/'+av_id+'.png" '+
                   'class="img-circle img-sm" alt="Profile Picture"></div>'+
                    '<div class="media-body pad-hor"><div class="speech">'+
@@ -473,7 +472,7 @@ $(function($) {
         var now = getTime();
         var last_msg_display = $('p.p-display').last().attr('id');
         if (last_msg_display == data.user) {
-              var html = '<li class="mar-btm right-pull-margin" id="right-display">'+
+              var html = '<li class="mar-btm right-pull-margin"">'+
                  '<div class="media-body pad-hor speech-right"><div class="speech_b">'+
                 '<div style="float:left"><p id="'+ data.user +'" class="p-display">'+ data.msg +'</p></div>'+
                 '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
@@ -481,7 +480,7 @@ $(function($) {
                '</li>';
         } else {
               var av_id = users_avatar[data.user];
-              var html = '<li class="mar-btm" id="right-display"><div class="media-right">'+
+              var html = '<li class="mar-btm"><div class="media-right">'+
                 '<img src="/images/'+av_id+'.png" '+
                 'class="img-circle img-sm" alt="Profile Picture"></div>'+
                  '<div class="media-body pad-hor speech-right"><div class="speech">'+
@@ -511,50 +510,51 @@ $(function($) {
 
         /**** send message to self ***********/
 
-        // if (chatLabel == username) {
-        //     if (last_msg_display == 'left-display') {
-        //       var html = '<li class="mar-btm left-pull-margin" id="left-display">'+
-        //              '<div class="media-body pad-hor"><div class="speech_a">'+
-        //             '<div style="float:left"><p>'+ data +'</p></div>'+
-        //         '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
-        //         '</div></div></div>'+
-        //            '</li>';
-        //       } else {
-        //        var av_id = users_avatar[username];
-        //        var html = '<li class="mar-btm" id="left-display"><div class="media-left">'+
-        //             '<img src="/images/'+av_id+'.png" '+
-        //             'class="img-circle img-sm" alt="Profile Picture"></div>'+
-        //              '<div class="media-body pad-hor"><div class="speech">'+
-        //             '<span href="#" class="media-heading">'+ username +'</span>'+
-        //             '<div style="float:left"><p>'+ data +'</p></div>'+
-        //         '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
-        //         '</div></div></div>'+
-        //            '</li>';
-        //       } 
+        if (data.user == username) {
+            var last_msg_display = $('p.p-display').last().attr('id');
+            if (last_msg_display == username) {
+              var html = '<li class="mar-btm left-pull-margin">'+
+                     '<div class="media-body pad-hor"><div class="speech_a">'+
+                    '<div style="float:left"><p id="'+ data.user +'" class="p-display">'+ data +'</p></div>'+
+                '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
+                '</div></div></div>'+
+                   '</li>';
+              } else {
+               var av_id = users_avatar[username];
+               var html = '<li class="mar-btm"><div class="media-left">'+
+                    '<img src="/images/'+av_id+'.png" '+
+                    'class="img-circle img-sm" alt="Profile Picture"></div>'+
+                     '<div class="media-body pad-hor"><div class="speech">'+
+                    '<span href="#" class="media-heading">'+ username +'</span>'+
+                    '<div style="float:left"><p id="'+ data.user +'" class="p-display">'+ data +'</p></div>'+
+                '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
+                '</div></div></div>'+
+                   '</li>';
+              } 
 
-        //       last_msg_display = 'left-display';
 
-        // } else {
+        } else {
+          var last_msg_display = $('p.p-display').last().attr('id');
           if (last_msg_display == data.user) {
-              var html = '<li class="mar-btm right-pull-margin" id="right-display">'+
+              var html = '<li class="mar-btm right-pull-margin">'+
                  '<div class="media-body pad-hor speech-right"><div class="speech_b">'+
-                '<div style="float:left"><p>'+ data.msg +'</p></div>'+
+                '<div style="float:left"><p id="'+ data.user +'" class="p-display">'+ data.msg +'</p></div>'+
                 '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
                 '</div></div></div>'+
                '</li>';
         } else {
               var av_id = users_avatar[data.user];
-              var html = '<li class="mar-btm" id="right-display"><div class="media-right">'+
+              var html = '<li class="mar-btm"><div class="media-right">'+
                 '<img src="/images/'+av_id+'.png" '+
                 'class="img-circle img-sm" alt="Profile Picture"></div>'+
                  '<div class="media-body pad-hor speech-right"><div class="speech">'+
                 '<span href="#" class="media-heading">'+ data.user +'</span>'+
-                '<div style="float:left"><p>'+ data.msg +'</p></div>'+
+                '<div style="float:left"><p id="'+ data.user +'" class="p-display">'+ data.msg +'</p></div>'+
                 '<div style="float:right"><p class="speech-time"><i class="fa fa-clock-o fa-fw"></i>'+ now +'</p>'+
                 '</div></div></div>'+
                '</li>';
           }
-             //} 
+             } 
         if (chatLabel == data.user) {
               $chat.append(html);
               chatBoxautoScroll()
