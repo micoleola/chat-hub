@@ -6,6 +6,7 @@ module.exports = function(app) {
 // module.exports = function(app, pg) {
 	// const conString = 'postgres://test:password@localhost:5432/chat-hub' // make sure to match your own database's credentials
 
+
 	app.post('/api/createUser', function(req, res) {
 		var data = req.body;
 			if(data) {
@@ -195,23 +196,65 @@ module.exports = function(app) {
 		}
 	});
 
-	app.get('/api/pullChat', function(req, res) {
+	app.get('/api/pullChat/', function(req, res) {
 		var data = req.query;
+		var page = Number(data.page);					
+		var numPerPage = 20;
+		var skip = page * numPerPage;
+		var limit = skip + ',' + numPerPage;
+		var numOfPages = 0;
 		config_mysql.connectandGetMysqlPool(function(err, connection) {
 		  if (err) {
 		    console.error(err);
 		    util.broadcastError(res, err.message);
 		    return;
 	    } else {
-	    	query.pullChat(connection, data, function(
+	    	query.generalRowCount(connection, {username: data.username}, function(
 			    err, rows) {
 			    if (err) {
 			      console.error(err);
 			      util.broadcastError(res, err.message);
 			      return;
 			    } else {
+					
 			    	// console.log(rows)
-    				res.json(rows)
+			    	if (rows[0].count > 0) {
+    				numOfPages = Math.ceil(rows[0].count / numPerPage);
+    					}
+    				if (page < numOfPages) {
+    				var _data = {username: data.username, limit: limit}
+			    	query.pullChat(connection, _data, function(
+					    err, rows) {
+					    if (err) {
+					      console.error(err);
+					      util.broadcastError(res, err.message);
+					      return;
+					    } else {
+					    	
+		    				var responsePayload = {rows: rows};
+		    				console.log(page +'   '+ numOfPages)
+
+
+							if (page < numOfPages) {
+							    responsePayload.pagination = {
+							    current: page,
+							    perPage: numPerPage,
+							    numOfPages: numOfPages,
+							    previous: page > 0 ? page - 1 : undefined,
+							    next: page < numOfPages - 1 ? page + 1 : undefined
+							    	}
+							} else responsePayload.pagination = {
+							      err: 'queried page is >= to maximum page number ' + numOfPages
+							    }
+
+							    console.log(JSON.stringify(responsePayload.pagination) + '   hghjgg')
+							    // console.log(responsePayload);
+							    res.json(responsePayload);
+							    }
+							});
+			    		} else {
+			    			err: 'queried page is >= to maximum page number ' + numOfPages
+			    		}
 				    }
 				});
 		    } 			    
@@ -245,23 +288,58 @@ module.exports = function(app) {
 		}
 	});
 
-	app.get('/api/pullPrivateChat', function(req, res) {
+	app.get('/api/pullPrivateChat/', function(req, res) {
 		var data = req.query;
+		var page = data.page;					
+		var numPerPage = 20;
+		var skip = page * numPerPage;
+		var limit = skip + ',' + numPerPage;
+		var numOfPages = 0;
 		config_mysql.connectandGetMysqlPool(function(err, connection) {
 		  if (err) {
 		    console.error(err);
 		    util.broadcastError(res, err.message);
 		    return;
 	    } else {
-	    	query.pullPrivateChat(connection, data, function(
+	    	query.privateRowCount(connection, {username: data.username, pair: data.pair}, function(
 			    err, rows) {
 			    if (err) {
 			      console.error(err);
 			      util.broadcastError(res, err.message);
 			      return;
 			    } else {
-			    	//console.log(rows)
-    				res.json(rows)
+					
+			    	// console.log(rows)
+			    	if (rows[0].count > 0) {
+    				numOfPages = Math.ceil(rows[0].count / numPerPage);
+    					}
+
+    				var _data = {username: data.username, pair: data.label, limit: limit}
+			    	query.pullPrivateChat(connection, _data, function(
+					    err, rows) {
+					    if (err) {
+					      console.error(err);
+					      util.broadcastError(res, err.message);
+					      return;
+					    } else {
+					    	
+		    				var responsePayload = {rows: rows};
+
+							if (page < numOfPages) {
+							    responsePayload.pagination = {
+							    current: page,
+							    perPage: numPerPage,
+							    numOfPages: numOfPages,
+							    previous: page > 0 ? page - 1 : undefined,
+							    next: page < numOfPages - 1 ? page + 1 : undefined
+							    	}
+							} else responsePayload.pagination = {
+							      err: 'queried page is >= to maximum page number ' + numOfPages
+							    }
+							    // console.log(responsePayload);
+							    res.json(responsePayload);
+						    }
+						});
 				    }
 				});
 		    } 			    
@@ -369,6 +447,29 @@ module.exports = function(app) {
 		    return;
 	    } else {
 	    	query.FlagOfflineAsRead(connection, data, function(
+			    err, rows) {
+			    if (err) {
+			      console.error(err);
+			      util.broadcastError(res, err.message);
+			      return;
+			    } else {
+			    	//console.log(rows)
+    				res.json(rows)
+				    }
+				});
+		    } 			    
+		});
+	});
+
+	app.post('/api/saveAvatar', function(req, res) {
+		var data = req.body;
+		config_mysql.connectandGetMysqlPool(function(err, connection) {
+		  if (err) {
+		    console.error(err);
+		    util.broadcastError(res, err.message);
+		    return;
+	    } else {
+	    	query.saveAvatar(connection, data, function(
 			    err, rows) {
 			    if (err) {
 			      console.error(err);

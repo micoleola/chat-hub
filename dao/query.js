@@ -56,7 +56,6 @@ module.exports = {
     },
 
   saveChat: function(con, data, callback) {
-	console.log('here in query 59 '+ data.chat)
     var sql = 'INSERT INTO general (username, chat) VALUES (' +con.escape(data.username)+', '+ con.escape(data.chat)+')';
     con.query(sql,
       function(err, rows) {
@@ -65,15 +64,34 @@ module.exports = {
     },
 
   pullChat: function(con, data, callback) {
-    var sql = 'SELECT username, chat, date_created FROM general WHERE date_created > (SELECT date_created FROM users WHERE username = '+ con.escape(data.username)+') ORDER BY general_id';
+    var sql = 'SELECT username, chat, date_created FROM general WHERE date_created > (SELECT date_created FROM users WHERE username = '+ con.escape(data.username)+') ORDER BY general_id DESC LIMIT '+ data.limit;
     con.query(sql,
       function(err, rows) {
         callback(err, rows);
       });
     },
 
-    savePrivateChat: function(con, data, callback) {
-    var sql = 'INSERT INTO user_'+ data.usertable +' (chat_id, username, chat, read_flag) VALUES (' +con.escape(data.chat_id)+', '+ con.escape(data.user)+', '+ con.escape(data.chat)+', ' +con.escape(data.read_flag)+')';
+  generalRowCount: function(con, data, callback) {
+    var sql = 'SELECT COUNT(*) count FROM general WHERE date_created > (SELECT date_created FROM users WHERE username = '+ con.escape(data.username)+')';
+    con.query(sql,
+      function(err, rows) {
+        callback(err, rows);
+      });
+    },
+
+  privateRowCount: function(con, data, callback) {
+    var sql = 'SELECT COUNT(*) count FROM private_chat WHERE (user1 = '+
+          con.escape(data.username) +' AND user2 = '+ con.escape(data.pair) +') OR (user1='+
+          con.escape(data.pair) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id';
+    con.query(sql,
+      function(err, rows) {
+        callback(err, rows);
+        console.log(rows + '   here in query')
+      });
+    },
+
+  savePrivateChat: function(con, data, callback) {
+    var sql = 'INSERT INTO private_chat (user1, user2, chat) VALUES (' +con.escape(data.user1)+', '+ con.escape(data.user2)+', '+ con.escape(data.chat)+')';
     con.query(sql,
       function(err, rows) {
         callback(err, rows);
@@ -81,7 +99,9 @@ module.exports = {
     },
 
   pullPrivateChat: function(con, data, callback) {
-    var sql = 'SELECT username, chat FROM user_'+ data.user +' WHERE chat_id = ' +con.escape(data.chat_id)+' ORDER BY id';
+    var sql = 'SELECT user1, chat, date_created FROM private_chat WHERE (user1 = '+
+          con.escape(data.username) +' AND user2 = '+ con.escape(data.pair) +') OR (user1='+
+          con.escape(data.pair) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id DESC LIMIT '+ data.limit;
     con.query(sql,
       function(err, rows) {
         callback(err, rows);
@@ -105,7 +125,7 @@ module.exports = {
     },
 
   getOfflineCount: function(con, data, callback) { 
-    var sql = 'SELECT COUNT(*) count FROM user_'+ data.table +' WHERE read_flag = 0 AND chat_id = '+ data.chat_id;
+    var sql = 'SELECT COUNT(*) count, user1 FROM private_chat WHERE read_flag = 0 AND user2 = '+con.escape(data.user)+' ORDER BY user1';
     con.query(sql,
       function(err, rows) {
         callback(err, rows);
@@ -113,16 +133,23 @@ module.exports = {
       });
     },
 
-    FlagAsRead: function(con, data, callback) {
-    var sql = 'UPDATE user_'+ data.usertable +' SET read_flag = 1 WHERE id = '+ data.insertId;
+  FlagAsRead: function(con, data, callback) {
+    var sql = 'UPDATE private_chat SET read_flag = 1 WHERE user2 = '+ con.escape(data.user2);
     con.query(sql,
       function(err, rows) {
         callback(err, rows);
       });
     },
 
-     FlagOfflineAsRead: function(con, data, callback) {
-    var sql = 'UPDATE user_'+ data.usertable +' SET read_flag = 1 WHERE chat_id = '+ data.chat_id;
+  FlagOfflineAsRead: function(con, data, callback) {
+    var sql = 'UPDATE private_chat SET read_flag = 1 WHERE user2 = '+ con.escape(data.user);
+    con.query(sql,
+      function(err, rows) {
+        callback(err, rows);
+      });
+    },
+  saveAvatar: function(con, data, callback) {
+    var sql = 'UPDATE users SET avatar_id = '+data.avatar_id+' WHERE username = '+con.escape(data.user);
     con.query(sql,
       function(err, rows) {
         callback(err, rows);

@@ -46,9 +46,10 @@
                     <div class="panel-heading">
                         <div class="panel-control">
                             <div class="btn-group">
-                                <button type="button" class="btn btn-default" data-toggle="dropdown" id="dropd_setting_btn"><i class="fa fa-user"></i><span id='user' style='text-align: right; font-size:14px'> </span></button>
+                                <button type="button" class="btn btn-default" data-toggle="dropdown" id="dropd_setting_btn"><span id="my_avatar"></span><span id='user' style='text-align: right; font-size:14px'> </span></button>
                                 <ul class="dropdown-menu dropdown-menu-right">
-                                    <li><a href="#">My Profile</a></li>
+                                 <!-- trigger modal -->
+                                    <li><a id="choose-avatar" data-toggle="modal" data-target="#myModal">Choose Avatar</a></li>
                                     <!--<li><a href="#">Busy</a></li>
                                 <li><a href="#">Away</a></li>-->
                                     <li class="divider"></li>
@@ -59,9 +60,39 @@
                         </div>
                         <div id="labelWrap" class="panel-title">
                             <div id="chatLabel">@#general</div><div id="info"></div>
-                        </div>
-                        <!--<h3 class="panel-title">Chat</h3>-->
+                        </div>                       
                     </div>
+                <!--MODAL BOX-->
+              
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">Choose your Avatar</h4>
+                      </div>
+                      <div class="modal-body" id="modal-body-img">
+                        <img src="/images/1.png" data-dismiss="modal" name=1 alt="Profile Picture">
+                        <img src="/images/2.png" data-dismiss="modal" name=2 alt="Profile Picture">
+                        <img src="/images/3.png" data-dismiss="modal" name=3 alt="Profile Picture">
+                        <img src="/images/4.png" data-dismiss="modal" name=4 alt="Profile Picture">
+                        <img src="/images/5.png" data-dismiss="modal" name=5 alt="Profile Picture">
+                        <img src="/images/6.png" data-dismiss="modal" name=6 alt="Profile Picture">
+                        <img src="/images/7.png" data-dismiss="modal" name=7 alt="Profile Picture">
+                        <img src="/images/8.png" data-dismiss="modal" name=8 alt="Profile Picture">
+                        <img src="/images/9.png" data-dismiss="modal" name=9 alt="Profile Picture">
+                        <img src="/images/10.png" data-dismiss="modal" name=10 alt="Profile Picture">
+
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                     <!--Widget body-->
                     <div id='chatWrap'>
@@ -72,7 +103,7 @@
                                 </ul>
                             </div>
                             <div class="nano-pane">
-                                <div class="nano-slider" style="height: 141px; transform: translate(0px, 0px);"></div>
+                                <div class="nano-slider" style="height: 141px; transform: translate(1px, 1px);"></div>
                             </div>
                         </div>
                         <div id='info_typing'></div>

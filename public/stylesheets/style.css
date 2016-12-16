@@ -6,7 +6,7 @@
 }
 a {
   text-decoration: none;
-  font-size: 8px;
+  font-size: 10px;
 }
 #reg_click {
   color:#566D7E/*#000*/;
@@ -163,6 +163,66 @@ background: #9c27b0 !important;
   font-style: italic;
   font-size: 7px;
 }
+
+#choose-avatar {
+  cursor: pointer;  
+}
+
+
+/* The Modal (background) */
+.modal {
+   
+ 
+}
+
+/* Modal Content */
+.modal-content {
+   
+}
+
+
+
+/* The Close Button */
+.close {
+    
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-header {
+    
+    /*background-color: #5cb85c;*/
+    color: #317787;
+}
+
+.modal-body img{
+  width: 50px;
+  height: 50px;
+  margin: 10px 1.5px;
+  border-radius: 2px;
+  border: 1px #317787 solid;
+  cursor: pointer;
+}
+
+.modal-footer {
+   
+    /*background-color: #5cb85c;*/
+    color: #317787;
+}
+
+#my_avatar {
+  margin-right: 5px;
+}
+
+#userBox p {
+  margin: 5px;
+}
+
 
 
 

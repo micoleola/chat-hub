@@ -87,6 +87,12 @@ p {
     height: 40px;
 }
 
+.img-xm {
+    width: 30px;
+    height: 30px;
+}
+
+
 .media-block .media-body {
     display: block;
     overflow: hidden;

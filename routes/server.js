@@ -9,7 +9,8 @@ module.exports = function(app, io) {
 	var connections = []; 
 	// var user = '';
 	var id = '';
-	var url = '';	
+	var url = '';
+	var users_avatar = {};	
 
 	app.get('/', function(req, res) {
 		url = req.protocol + '://' + req.get('host');
@@ -26,12 +27,15 @@ module.exports = function(app, io) {
 				} else {
 					if(body) {
 						var body = JSON.parse(body);
+						console.log('no users fetched')
 						for (var i = 0; i < body.length; i++) {
 							var row = body[i];
 							var username = row['username'];
 							var password = row['password'];
 							var chat_id = row['chat_id'];
-							db_users[username] = {password: password, chat_id: chat_id};							
+							var av_id = row['avatar_id'];
+							db_users[username] = {password: password, chat_id: chat_id};
+							users_avatar[username] = av_id;							
 						}
 					} else {
 						console.log('no users fetched')
@@ -89,6 +93,7 @@ module.exports = function(app, io) {
 										console.log(socket.nickname + ' is online. Connected sockets is %s', connections.length);
 										broadcastUser('online', socket.nickname);	
 										updateUsers();
+										updateUsersAvatar();
 										socket.emit('login')
 									}
 								})
@@ -108,7 +113,8 @@ module.exports = function(app, io) {
 				connections.push(socket);
 				console.log(socket.nickname + ' is online. Connected sockets is %s', connections.length);
 				broadcastUser('online', socket.nickname);	
-				updateUsers();	
+				updateUsers();
+				updateUsersAvatar();	
 				callback (true);
 				}			
 			});	
@@ -127,7 +133,6 @@ module.exports = function(app, io) {
 			}
 
 		function updateNotification() {
-	  		//getUnreadCount()
 			 sockets.emit('notification', {users: Object.keys(users)});
 			}
 
@@ -149,11 +154,10 @@ module.exports = function(app, io) {
 		socket.on('send message', function(data, callback) {
 			if (data) {
 				var msg = data.msg;
-				var tablename = data.user;
+				var user = data.user;
 				var _label = data.label;
 				if (_label) {
 					if (_label == '#general') {
-						console.log(_label +' '+ data.user)
 						var _data = {username: socket.nickname, chat: data.msg};
 						api.saveChat(_data, url, function(error, response, body) {
 							if(error) {
@@ -164,49 +168,31 @@ module.exports = function(app, io) {
 							}				
 						});	
 					} else {
-						fetchId(_label, function(data) {
-							var _data = {chat_id: data, usertable: tablename, user: socket.nickname, chat: msg, read_flag: 1};
-							api.savePrivateChat(_data, url, function (error, response, body) {					
-								if(error) {
-									console.log(error)
-									return;
-								} else if (socket.nickname != _label) {
-									var _body = body;
-									fetchId(socket.nickname, function(data) {
-										var _data_pair = {chat_id: data, usertable: _label, user: socket.nickname, chat: msg, read_flag: 0};
-										api.savePrivateChat(_data_pair, url, function (error, response, body) {					
-											if(error) {
+						// var user1 = fetchId(user),
+						// 	user2 = fetchId(_label);
+
+						var _data = {user1: user, user2: _label, chat: msg};
+						api.savePrivateChat(_data, url, function (error, response, body) {					
+						    if(error) {
+								console.log(error)
+								return;
+							} else {
+								users[_label].emit('private message', {msg: msg, user: socket.nickname}, function(data) {
+									if(data) {
+										if (data == 'read') {
+										api.FlagAsRead({user2: _label}, url, function (error, response, body) {
+											if (error) {
 												console.log(error)
-												return;
-											} else {												
-												users[_label].emit('private message', {msg: msg, user: socket.nickname}, function(data) {
-													body.usertable = _label;
-													if (data) {
-														if (data == 'read') {
-															api.FlagAsRead(body, url, function (error, response, body) {
-																if (error) {
-																	console.log(error)
-																} else {
-																	
-															    	}
-														    	})		
-														    } 
-															callback(msg)
-														}
-													});
+											} else {
+												console.log('chat delivered')
 												}
-											})
-										});
-								} else {
-									users[_label].emit('private message', {msg: msg, user: socket.nickname}, function(data) {
-											if (data) {
-												console.log(data)
-												callback(msg)
-												}
-										});
-									}
-								})
-							});							
+											});
+										}
+										callback(msg)
+										}
+									});
+								}
+							})						
 						}
 					} else {
 						console.log('invalid label')
@@ -218,43 +204,36 @@ module.exports = function(app, io) {
 			});	
 
 		socket.on('flag as read', function(data) {
-			var chat_id = db_users[data].chat_id;
-			var flag_info = {usertable: socket.nickname, chat_id: chat_id}; 
+			// var chat_id = db_users[data].chat_id;
+			var flag_info = {user: data}; 
 			api.FlagOfflineAsRead(flag_info, url, function(error, response, body) {
 				if (error) {
 					console.log(error)
 				} else {
-
+					console.log('all offline msg read')
 				}
 			});
 		})
 
 		socket.on('get unread chat', function(data, callback) {
-
-			if (db_users.hasOwnProperty(data.chat_pair) && data.usertable != '') {
-				var chat_id = db_users[data.chat_pair].chat_id;
-				var flaginfo = {table: data.usertable, chat_id: chat_id}; 
-				api.getOfflineCount(flaginfo, url, function(error, response, body) {
-					if (error) {
-						console.log(error)
-					} else {
-						var body = JSON.parse(body);
-						if (body[0].count != 0) body[0].user_update = 	data.chat_pair;				
-						callback(body)
-					}
-				});
-			} else {
-				callback(0);
-			}
+			api.getOfflineCount({user: data.user}, url, function(error, response, body) {
+				if (error) {
+					console.log(error)
+				} else {
+					var body = JSON.parse(body);
+					callback(body)
+				}
+			});
 		})
 
 		socket.on('pull message', function(data, callback) {
-			if (data[0] == '#') {
-				data_trim = data.substr(1);
-			}
-			
-			if(data == '#general') {
-				var _data = {username: socket.nickname, label: data_trim};
+			var label = data.label;
+					
+			if(label == '#general') {
+				if (label[0] == '#') {
+					var data_trim = label.substr(1);
+					}
+				var _data = {username: socket.nickname, label: data_trim, page: data.page};
 				api.pullChat(_data, url, function(error, response, body) {
 					if(error) {
 						console.log(error)
@@ -265,20 +244,26 @@ module.exports = function(app, io) {
 					}				
 				});				
 			} else {
-				fetchId(data, function(data) {
-					var id = data;	
-					var _data = {user: socket.nickname, chat_id: id};
-					api.pullPrivateChat(_data, url, function(error, response, body) {
+				 // var user1 = fetchId(socket.nickname),
+					//  user2 = fetchId(data);
+
+				var _data = {username: socket.nickname, pair: data.label, page: data.page};
+
+				api.pullPrivateChat(_data, url, function(error, response, body) {
 						if(error) {
 							console.log(error)
 						} else {
 							var body = JSON.parse(body);
-							socket.emit('private chat backup', body);
+							var data = [];
+							//console.log(JSON.stringify(body[4]) +'  server267')
+							for(var i = 0; i < body.length; i++) {
+								data.push({username: body[i].user1, chat: body[i].chat, date_created: body[i].date_created});
+							}
+							socket.emit('private chat backup', data);
 							callback(true);
 							}				
-						});	
-					});	
-				}
+						});		 
+					}
 			}); 
 		
 		function generateChatId(callback) {
@@ -287,7 +272,7 @@ module.exports = function(app, io) {
 			callback(id);
 		};
 
-		function fetchId(label, callback) {
+		function fetchId(label) {
 			var id = '';
 			var _users_keys = Object.keys(db_users);
 			for(var i = 0; i < _users_keys.length; i++) {
@@ -295,7 +280,7 @@ module.exports = function(app, io) {
 
 				if (_username == label) {
 					id = db_users[_username].chat_id;
-					callback(id);						
+					return id;						
 					}
 				}				 			
 			};
@@ -307,9 +292,27 @@ module.exports = function(app, io) {
 			connections.splice((connections.indexOf(socket)), 1);
 			broadcastUser('offline', socket.nickname);
 			updateUsers();
+			updateUsersAvatar();
 			socket.disconnect(true);		
 			console.log(socket.nickname + ' is disconnected. %s sockets left', connections.length);
 		});
+
+		/***********AVARTAR****************/
+		socket.on('user avatar change', function(data) {
+			users_avatar[socket.nickname] = data;
+			api.saveAvatar({user: socket.nickname, avatar_id: data}, url, function(error, response, body) {
+				if (error) {
+					console.log(error)
+				} else {
+					updateUsersAvatar();
+				}
+			})
+			
+		})
+
+		function updateUsersAvatar() {
+			io.sockets.emit('update users avatar', users_avatar);
+		}
 
 		socket.on('connect_failed', function() {
 		    console.log("Sorry, there seems to be an issue with the connection!");

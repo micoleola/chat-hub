@@ -197,4 +197,18 @@ module.exports = {
             callback(error, response, body);
         })
    }, 
+
+      saveAvatar: function(data, url, callback) {
+        request({
+            url: url + '/api/saveAvatar',
+            method: 'POST',
+            json: true,
+            headers: {
+                "content-type": "application/json",
+            },
+            body: data,
+        }, function(error, response, body) {
+            callback(error, response, body);
+        })
+   },
 }
