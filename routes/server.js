@@ -80,28 +80,16 @@ module.exports = function(app, io) {
 						console.log(error)
 					} else {
 						var _user = {user: socket.nickname};
-						api.dropUser(_user, url, function(error, response, body) {
-							if(error) {
-								console.log(error)
-							} else {
-								api.createUser(_user, url, function(error, response, body) {
-									if(error) {
-										console.log(error)
-									} else {
-										users[socket.nickname] = socket;
-										connections.push(socket);
-										console.log(socket.nickname + ' is online. Connected sockets is %s', connections.length);
-										broadcastUser('online', socket.nickname);	
-										updateUsers();
-										updateUsersAvatar();
-										socket.emit('login')
-									}
-								})
-							}
-						})						
-					}	
-				});	
-			})	
+						users[socket.nickname] = socket;
+						connections.push(socket);
+						console.log(socket.nickname + ' is online. Connected sockets is %s', connections.length);
+						broadcastUser('online', socket.nickname);	
+						updateUsers();
+						updateUsersAvatar();
+						socket.emit('login')
+						}	
+					});	
+				})	
 			});
 
 		socket.on('user logged in', function(data, callback) {

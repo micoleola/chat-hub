@@ -21,7 +21,6 @@ $(function($) {
       var pass = false;
       var url = '';
       var general_count = '';
-      var last_msg_display = '';
       var users_avatar = {};
       var displayedChatInfo = {};
       var privateChatInfo = {};
@@ -452,7 +451,6 @@ $(function($) {
           
           //attach chat
           $chat.append(html);             
-          last_msg_display = $('p.p-display').last().attr('id');
           //wrap and adjust scrolling efect
           chatBoxautoScroll();
             }

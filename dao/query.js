@@ -1,27 +1,4 @@
 module.exports = {
-  createUser: function(con, data, callback) {
-    var sql = 'CREATE TABLE user_'+data.user+'('+         
-           '`id` INT(20) NOT NULL AUTO_INCREMENT, '+    
-           '`chat_id` VARCHAR(200) NOT NULL,'+         
-           '`username` VARCHAR(100) NOT NULL,'+                         
-           '`chat` VARCHAR(200) NOT NULL,'+                               
-           '`date_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'+
-           '`read_flag` INT(1) NOT NULL DEFAULT 0,'+
-           'PRIMARY KEY (`id`)'+               
-         ')';
-    con.query(sql,
-      function(err, rows) {
-        callback(err, rows);
-      });
-    },
-
-    dropUser: function(con, data, callback) {
-    var sql = 'DROP TABLE IF EXISTS user_'+data.user;
-    con.query(sql,
-      function(err, rows) {
-        callback(err, rows);
-      });
-    },
 
     saveUser: function(con, data, callback) {
     var sql = 'INSERT INTO users (username, password, chat_id) VALUES (' +con.escape(data.username)+', '+ con.escape(data.password) +', '+ con.escape(data.id) +')';
@@ -102,14 +79,6 @@ module.exports = {
           con.escape(data.label) +' AND user2='+ con.escape(data.username) +') ORDER BY chat_id DESC LIMIT '+ data.limit;
     con.query(sql,
       function(err, rows) {        
-        callback(err, rows);
-      });
-    },
-
-    savePairChatId: function(con, data, callback) {
-    var sql = 'INSERT INTO chat_pair (pair_id, user1, user2) VALUES (' +con.escape(data.id)+', '+con.escape(data.user1)+','+ con.escape(data.user2)+')';
-    con.query(sql,
-      function(err, rows) {
         callback(err, rows);
       });
     },

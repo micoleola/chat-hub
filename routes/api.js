@@ -6,59 +6,6 @@ module.exports = function(app) {
 // module.exports = function(app, pg) {
 	// const conString = 'postgres://test:password@localhost:5432/chat-hub' // make sure to match your own database's credentials
 
-
-	app.post('/api/createUser', function(req, res) {
-		var data = req.body;
-			if(data) {
-				config_mysql.connectandGetMysqlPool(function(err, connection) {
-				  if (err) {
-				    console.error(err);
-				    util.broadcastError(res, err.message);
-				    return;
-			    } else {
-			    	query.createUser(connection, data, function(
-					    err, rows) {
-					    if (err) {
-					      console.error(err);
-					      util.broadcastError(res, err.message);
-					      return;
-					    } else {
-		    				res.json(data)
-					    }
-					  });
-			      } 			    
-			  });
-		} else {
-			return;
-		}
-	});
-
-	app.post('/api/dropUser', function(req, res) {
-		var data = req.body;
-			if(data) {
-				config_mysql.connectandGetMysqlPool(function(err, connection) {
-				  if (err) {
-				    console.error(err);
-				    util.broadcastError(res, err.message);
-				    return;
-			    } else {
-			    	query.dropUser(connection, data, function(
-					    err, rows) {
-					    if (err) {
-					      console.error(err);
-					      util.broadcastError(res, err.message);
-					      return;
-					    } else {
-		    				res.json(data)
-					    }
-					  });
-			      } 			    
-			  });
-		} else {
-			return;
-		}
-	});
-
 	app.post('/api/saveUser', function(req, res) {
 		var data = req.body;
 			if(data) {
@@ -349,29 +296,6 @@ module.exports = function(app) {
 		    return;
 	    } else {
 	    	query.getAllChatPair(connection, data, function(
-			    err, rows) {
-			    if (err) {
-			      console.error(err);
-			      util.broadcastError(res, err.message);
-			      return;
-			    } else {
-			    	//console.log(rows)
-    				res.json(rows)
-				    }
-				});
-		    } 			    
-		});
-	});
-
-	app.post('/api/savePairChatId', function(req, res) {
-		var data = req.body;
-		config_mysql.connectandGetMysqlPool(function(err, connection) {
-		  if (err) {
-		    console.error(err);
-		    util.broadcastError(res, err.message);
-		    return;
-	    } else {
-	    	query.savePairChatId(connection, data, function(
 			    err, rows) {
 			    if (err) {
 			      console.error(err);

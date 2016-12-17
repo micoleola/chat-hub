@@ -15,34 +15,6 @@ module.exports = {
         })
     },
 
-    createUser: function(data, url, callback) {
-        request({
-            url: url + '/api/createUser',
-            method: "POST",
-            json: true,
-            headers: {
-                "content-type": "application/json",
-            },
-            body: data,
-        }, function(error, response, body) {
-            callback(error, response, body);
-        })
-    },
-
-    dropUser: function(data, url, callback) {
-        request({
-            url: url + '/api/dropUser',
-            method: "POST",
-            json: true,
-            headers: {
-                "content-type": "application/json",
-            },
-            body: data,
-        }, function(error, response, body) {
-            callback(error, response, body);
-        })
-    },
-
     deleteUser: function(data, url, callback) {
         request({
             url: url + '/api/deleteUser',
@@ -122,22 +94,7 @@ module.exports = {
         }, function(error, response, body) {
             callback(error, response, body);
         })
-   },
-
-
-    savePairChatId: function(data, url, callback) {
-        request({
-            url: url + '/api/savePairChatId',
-            method: "POST",
-            json: true,
-            headers: {
-                "content-type": "application/json",
-            },
-            body: data,
-        }, function(error, response, body) {
-            callback(error, response, body);
-        })
-    },        
+   },       
 
    getAllChatPair: function(data, url, callback) {
         request({
